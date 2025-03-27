@@ -7,9 +7,10 @@
 #include <string>
 #include <atomic>
 
-#include "Nocopy.h"
+#include "Noncopyable.h"
 
-class Thread : nocopy{
+class Thread : noncopyable
+{
 
 public:
     using ThreadFunc = std::function<void()>;
@@ -27,9 +28,10 @@ public:
 
 private:
     
+    void setDefaultName();
     // 线程状态
-    bool started_;
-    bool joined_;
+    std::atomic<bool> started_;
+    std::atomic<bool> joined_;
     // 实际的线程对象
     std::shared_ptr<std::thread> thread_;
     pid_t threadid_;

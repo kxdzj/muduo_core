@@ -29,9 +29,16 @@ std::string Timestamp::toString() const {
     // 格式化输出
     std::ostringstream oss;
     oss << std::put_time(&tm_time, "%Y-%m-%d %H:%M:%S")
-        << "." << std::setfill('0') << std::setw(6) << microseconds;
+        << "." << std::setfill('0') << std::setw(6) << microseconds
+        << " "<< std::put_time(&tm_time, "%A");
     
     return oss.str();
 
 }
 
+// #include <iostream>
+// int main(){
+//     Timestamp now = Timestamp::now();
+//     std::cout << now.toString() << std::endl;
+//     return 0;
+// }
