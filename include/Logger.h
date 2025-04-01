@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "Noncopyable.h"
+#include "noncopyable.h"
 
 // 定义日志的级别 INFO ERROR FATAL DEBUG
 enum LogLevel

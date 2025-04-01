@@ -1,11 +1,14 @@
-#include "../include/CurrentThread.h"
-#include <sys/syscall.h>
-#include <unistd.h>
+#include "CurrentThread.h"
 
-namespace CurrentThread {
-    __thread int t_cachedTid = 0; // 线程局部变量，每个线程独立
+namespace CurrentThread
+{
+    __thread int t_cachedTid = 0;
 
-    void cacheTid() {
-        t_cachedTid = static_cast<int>(::syscall(SYS_gettid));  // 获取线程 ID
+    void cacheTid()
+    {
+        if (t_cachedTid == 0)
+        {
+            t_cachedTid = static_cast<pid_t>(::syscall(SYS_gettid));
+        }
     }
 }

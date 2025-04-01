@@ -1,69 +1,58 @@
-#include "../include/Thread.h"
-#include "../include/CurrentThread.h"
+#include "Thread.h"
+#include "CurrentThread.h"
+
 #include <semaphore.h>
-#include <system_error>
-#include <stdexcept>
 
-std::atomic_int Thread::numThreadCreated_(0);
+std::atomic_int Thread::numCreated_(0);
 
-Thread::Thread(ThreadFunc func, const std::string& name)
-    : started_(false),
-      joined_(false),
-      threadid_(0),
-      func_(std::move(func)),
-      threadname_(name)
+Thread::Thread(ThreadFunc func, const std::string &name)
+    : started_(false)
+    , joined_(false)
+    , tid_(0)
+    , func_(std::move(func))
+    , name_(name)
 {
     setDefaultName();
 }
 
-void Thread::setDefaultName()
-{
-    int num = ++numThreadCreated_;
-    if (threadname_.empty())
-    {
-        char buf[32] = {0};
-        snprintf(buf, sizeof(buf), "Thread%d", num);
-        threadname_ = buf;
-    }
-}
-
 Thread::~Thread()
 {
-    if (started_ && !joined_ && thread_ && thread_->joinable())
+    if (started_ && !joined_)
     {
-        thread_->detach();
+        thread_->detach();                                                  // thread类提供了设置分离线程的方法 线程运行后自动销毁（非阻塞）
     }
 }
 
-void Thread::start()
+void Thread::start()                                                        // 一个Thread对象 记录的就是一个新线程的详细信息
 {
-    if (started_.exchange(true)) {
-        throw std::logic_error("Thread already started");
-    }
-
+    started_ = true;
     sem_t sem;
-    sem_init(&sem, false, 0); 
-
-    thread_ = std::make_shared<std::thread>([this, &sem]() {
-        threadid_ = CurrentThread::tid();
+    sem_init(&sem, false, 0);                                               // false指的是 不设置进程间共享
+    // 开启线程
+    thread_ = std::shared_ptr<std::thread>(new std::thread([&]() {
+        tid_ = CurrentThread::tid();                                        // 获取线程的tid值
         sem_post(&sem);
-        func_(); 
-    });
+        func_();                                                            // 开启一个新线程 专门执行该线程函数
+    }));
 
+    // 这里必须等待获取上面新创建的线程的tid值
     sem_wait(&sem);
-    sem_destroy(&sem);
 }
 
+// C++ std::thread 中join()和detach()的区别：https://blog.nowcoder.net/n/8fcd9bb6e2e94d9596cf0a45c8e5858a
 void Thread::join()
 {
-    if (!started_) {
-        throw std::logic_error("Thread not started");
-    }
-    if (joined_.exchange(true)) {
-        throw std::logic_error("Thread already joined");
-    }
-    
-    if (thread_ && thread_->joinable()) {
-        thread_->join();
+    joined_ = true;
+    thread_->join();
+}
+
+void Thread::setDefaultName()
+{
+    int num = ++numCreated_;
+    if (name_.empty())
+    {
+        char buf[32] = {0};
+        snprintf(buf, sizeof buf, "Thread%d", num);
+        name_ = buf;
     }
 }

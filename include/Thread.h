@@ -7,36 +7,33 @@
 #include <string>
 #include <atomic>
 
-#include "Noncopyable.h"
+#include "noncopyable.h"
 
 class Thread : noncopyable
 {
-
 public:
     using ThreadFunc = std::function<void()>;
 
     explicit Thread(ThreadFunc, const std::string &name = std::string());
     ~Thread();
-    
+
     void start();
     void join();
-    bool isStarted()  { return started_; }
-    pid_t tid() const { return threadid_; }
-    const std::string& name() const { return threadname_; }
-    static int numCreated() { return numThreadCreated_; }
 
+    bool started() { return started_; }
+    pid_t tid() const { return tid_; }
+    const std::string &name() const { return name_; }
+
+    static int numCreated() { return numCreated_; }
 
 private:
-    
     void setDefaultName();
-    // 线程状态
-    std::atomic<bool> started_;
-    std::atomic<bool> joined_;
-    // 实际的线程对象
+
+    bool started_;
+    bool joined_;
     std::shared_ptr<std::thread> thread_;
-    pid_t threadid_;
-    ThreadFunc func_;
-    std::string threadname_;
-    // 创建的线程数量
-    static std::atomic_int numThreadCreated_;
+    pid_t tid_;       // 在线程创建时再绑定
+    ThreadFunc func_; // 线程回调函数
+    std::string name_;
+    static std::atomic_int numCreated_;
 };

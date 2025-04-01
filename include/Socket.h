@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Noncopyable.h"
+#include "noncopyable.h"
 
 class InetAddress;
 
@@ -9,7 +9,9 @@ class Socket : noncopyable
 {
 public:
     explicit Socket(int sockfd)
-        : sockfd_(sockfd) {}
+        : sockfd_(sockfd)
+    {
+    }
     ~Socket();
 
     int fd() const { return sockfd_; }
